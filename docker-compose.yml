@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # MQTT Broker - Message ingestion layer
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: industrial-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - industrial-net
+
+  # InfluxDB v2 - Time-series database
+  influxdb:
+    image: influxdb:2.7
+    container_name: industrial-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb/data:/var/lib/influxdb2
+      - ./influxdb/config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET}
+      - DOCKER_INFLUXDB_INIT_RETENTION=${INFLUX_RETENTION}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
+    networks:
+      - industrial-net
+
+  # Node-RED - Data processing and validation
+  nodered:
+    image: nodered/node-red:latest
+    container_name: industrial-nodered
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./nodered/data:/data
+    environment:
+      - TZ=${TIMEZONE}
+    depends_on:
+      - mosquitto
+      - influxdb
+    networks:
+      - industrial-net
+
+  # Grafana - Visualization and alerting
+  grafana:
+    image: grafana/grafana:latest
+    container_name: industrial-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_INSTALL_PLUGINS=
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL}
+    depends_on:
+      - influxdb
+    networks:
+      - industrial-net
+
+networks:
+  industrial-net:
+    driver: bridge
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  influxdb-data:
+  influxdb-config:
+  nodered-data:
+  grafana-data:

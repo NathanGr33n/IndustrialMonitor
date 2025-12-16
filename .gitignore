@@ -1,0 +1,69 @@
+# Secrets & Environment
+.env
+*.key
+*.pem
+*.crt
+secrets/
+
+# Data Volumes - Never commit operational data
+*/data/
+influxdb/data/
+influxdb/config/
+grafana/data/
+nodered/data/
+mosquitto/data/
+mosquitto/log/
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Backups
+*.backup
+*.bak
+backups/
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor Files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-*
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+*.o
+*.a
+*.exe
+build/
+dist/
